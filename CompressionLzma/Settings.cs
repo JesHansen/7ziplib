@@ -1,33 +1,34 @@
-﻿
+﻿using System.Configuration;
+using System.Threading;
+
 namespace LzmaAlone.Properties
 {
-	public class Settings : System.Configuration.ApplicationSettingsBase
-	{
-		private static Settings _mValue;
+    public class Settings : ApplicationSettingsBase
+    {
+        private static Settings _mValue;
 
-		private static object _mSyncObject = new object();
+        private static readonly object _mSyncObject = new object();
 
-		public static Settings Value
-		{
-			get
-			{
-				if (_mValue == null)
-				{
-					System.Threading.Monitor.Enter(_mSyncObject);
-					if (_mValue == null)
-					{
-						try
-						{
-							_mValue = new Settings();
-						}
-						finally
-						{
-							System.Threading.Monitor.Exit(_mSyncObject);
-						}
-					}
-				}
-				return _mValue;
-			}
-		}
-	}
+        public static Settings Value
+        {
+            get
+            {
+                if (_mValue == null)
+                {
+                    Monitor.Enter(_mSyncObject);
+                    if (_mValue == null)
+                        try
+                        {
+                            _mValue = new Settings();
+                        }
+                        finally
+                        {
+                            Monitor.Exit(_mSyncObject);
+                        }
+                }
+
+                return _mValue;
+            }
+        }
+    }
 }
