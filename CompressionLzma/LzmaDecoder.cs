@@ -68,8 +68,6 @@ namespace SevenZip.Compression.LZMA
             }
 
             while (nowPos64 < outSize64)
-                // UInt64 next = Math.Min(nowPos64 + (1 << 18), outSize64);
-                // while(nowPos64 < next)
             {
                 var posState = (uint) nowPos64 & mPosStateMask;
                 if (mIsMatchDecoders[(state.Index << Base.KNumPosStatesBitsMax) + posState].Decode(mRangeDecoder) == 0)
@@ -249,7 +247,6 @@ namespace SevenZip.Compression.LZMA
             mLiteralDecoder.Init();
             for (i = 0; i < Base.KNumLenToPosStates; i++)
                 mPosSlotDecoder[i].Init();
-            // m_PosSpecDecoder.Init();
             for (i = 0; i < Base.KNumFullDistances - Base.KEndPosModelIndex; i++)
                 mPosDecoders[i].Init();
 
@@ -408,30 +405,5 @@ namespace SevenZip.Compression.LZMA
                 }
             }
         }
-
-        /*
-		public override bool CanRead { get { return true; }}
-		public override bool CanWrite { get { return true; }}
-		public override bool CanSeek { get { return true; }}
-		public override long Length { get { return 0; }}
-		public override long Position
-		{
-			get { return 0;	}
-			set { }
-		}
-		public override void Flush() { }
-		public override int Read(byte[] buffer, int offset, int count) 
-		{
-			return 0;
-		}
-		public override void Write(byte[] buffer, int offset, int count)
-		{
-		}
-		public override long Seek(long offset, System.IO.SeekOrigin origin)
-		{
-			return 0;
-		}
-		public override void SetLength(long value) {}
-		*/
     }
 }

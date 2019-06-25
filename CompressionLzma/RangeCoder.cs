@@ -87,11 +87,10 @@ namespace SevenZip.Compression.RangeCoder
                 Range >>= 1;
                 if (((v >> i) & 1) == 1)
                     Low += Range;
-                if (Range < KTopValue)
-                {
-                    Range <<= 8;
-                    ShiftLow();
-                }
+                if (Range >= KTopValue)
+                    continue;
+                Range <<= 8;
+                ShiftLow();
             }
         }
 
@@ -117,9 +116,7 @@ namespace SevenZip.Compression.RangeCoder
 
         public long GetProcessedSizeAdd()
         {
-            return cacheSize +
-                   stream.Position - startPosition + 4;
-            // (long)Stream.GetProcessedSize();
+            return cacheSize + stream.Position - startPosition + 4;
         }
     }
 
@@ -130,12 +127,10 @@ namespace SevenZip.Compression.RangeCoder
 
         public uint Range;
 
-        // public Buffer.InBuffer Stream = new Buffer.InBuffer(1 << 16);
         public Stream Stream;
 
         public void Init(Stream stream)
         {
-            // Stream.Init(stream);
             Stream = stream;
 
             Code = 0;
@@ -146,7 +141,6 @@ namespace SevenZip.Compression.RangeCoder
 
         public void ReleaseStream()
         {
-            // Stream.ReleaseStream();
             Stream = null;
         }
 
@@ -166,11 +160,10 @@ namespace SevenZip.Compression.RangeCoder
 
         public void Normalize2()
         {
-            if (Range < KTopValue)
-            {
-                Code = (Code << 8) | (byte) Stream.ReadByte();
-                Range <<= 8;
-            }
+            if (Range >= KTopValue)
+                return;
+            Code = (Code << 8) | (byte) Stream.ReadByte();
+            Range <<= 8;
         }
 
         public uint GetThreshold(uint total)
@@ -193,14 +186,6 @@ namespace SevenZip.Compression.RangeCoder
             for (var i = numTotalBits; i > 0; i--)
             {
                 range >>= 1;
-                /*
-                result <<= 1;
-                if (code >= range)
-                {
-                    code -= range;
-                    result |= 1;
-                }
-                */
                 var t = (code - range) >> 31;
                 code -= range & (t - 1);
                 result = (result << 1) | (1 - t);
@@ -236,7 +221,5 @@ namespace SevenZip.Compression.RangeCoder
             Normalize();
             return symbol;
         }
-
-        // ulong GetProcessedSize() {return Stream.GetProcessedSize(); }
     }
 }

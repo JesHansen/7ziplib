@@ -17,7 +17,6 @@ namespace SevenZip.Compression.LZ
         public void Create(uint windowSize)
         {
             if (this.windowSize != windowSize)
-                // System.GC.Collect();
                 buffer = new byte[windowSize];
             this.windowSize = windowSize;
             pos = 0;
@@ -28,12 +27,11 @@ namespace SevenZip.Compression.LZ
         {
             ReleaseStream();
             this.stream = stream;
-            if (!solid)
-            {
-                streamPos = 0;
-                pos = 0;
-                TrainSize = 0;
-            }
+            if (solid)
+                return;
+            streamPos = 0;
+            pos = 0;
+            TrainSize = 0;
         }
 
         public bool Train(Stream stream)
