@@ -9,12 +9,10 @@ namespace SevenZip.Compression.LZMA
 {
     public class Encoder : ICoder, ISetCoderProperties, IWriteCoderProperties
     {
-        private const uint KIfinityPrice = 0xFFFFFFF;
+        private const uint KInfinityPrice = 0xFFFFFFF;
 
         private const int KDefaultDictionaryLogSize = 22;
         private const uint KNumFastBytesDefault = 0x20;
-
-        private const uint KNumLenSpecSymbols = Base.KNumLowLenSymbols + Base.KNumMidLenSymbols;
 
         private const uint KNumOpts = 1 << 12;
 
@@ -573,7 +571,7 @@ namespace SevenZip.Compression.LZMA
             var len = lenEnd;
             do
             {
-                optimum[len--].Price = KIfinityPrice;
+                optimum[len--].Price = KInfinityPrice;
             } while (len >= 2);
 
             for (i = 0; i < Base.KNumRepDistances; i++)
@@ -804,7 +802,7 @@ namespace SevenZip.Compression.LZMA
                         {
                             var offset = cur + 1 + lenTest2;
                             while (lenEnd < offset)
-                                this.optimum[++lenEnd].Price = KIfinityPrice;
+                                this.optimum[++lenEnd].Price = KInfinityPrice;
                             var curAndLenPrice = nextRepMatchPrice + GetRepPrice(
                                                      0, lenTest2, state2, posStateNext);
                             var optimum = this.optimum[offset];
@@ -831,7 +829,7 @@ namespace SevenZip.Compression.LZMA
                     do
                     {
                         while (lenEnd < cur + lenTest)
-                            this.optimum[++lenEnd].Price = KIfinityPrice;
+                            this.optimum[++lenEnd].Price = KInfinityPrice;
                         var curAndLenPrice = repMatchPrice + GetRepPrice(repIndex, lenTest, state, posState);
                         var optimum = this.optimum[cur + lenTest];
                         if (curAndLenPrice < optimum.Price)
@@ -877,7 +875,7 @@ namespace SevenZip.Compression.LZMA
                         {
                             var offset = lenTest + 1 + lenTest2;
                             while (lenEnd < cur + offset)
-                                this.optimum[++lenEnd].Price = KIfinityPrice;
+                                this.optimum[++lenEnd].Price = KInfinityPrice;
                             var curAndLenPrice = nextRepMatchPrice + GetRepPrice(0, lenTest2, state2, posStateNext);
                             var optimum = this.optimum[cur + offset];
                             if (curAndLenPrice >= optimum.Price)
@@ -906,7 +904,7 @@ namespace SevenZip.Compression.LZMA
                 {
                     normalMatchPrice = matchPrice + isRep[state.Index].GetPrice0();
                     while (lenEnd < cur + newLen)
-                        optimum[++lenEnd].Price = KIfinityPrice;
+                        optimum[++lenEnd].Price = KInfinityPrice;
 
                     uint offs = 0;
                     while (startLen > matchDistances[offs])
@@ -955,7 +953,7 @@ namespace SevenZip.Compression.LZMA
 
                                 var offset = lenTest + 1 + lenTest2;
                                 while (lenEnd < cur + offset)
-                                    this.optimum[++lenEnd].Price = KIfinityPrice;
+                                    this.optimum[++lenEnd].Price = KInfinityPrice;
                                 curAndLenPrice = nextRepMatchPrice + GetRepPrice(0, lenTest2, state2, posStateNext);
                                 optimum = this.optimum[cur + offset];
                                 if (curAndLenPrice < optimum.Price)

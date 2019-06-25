@@ -190,11 +190,10 @@ namespace SevenZip.Compression.RangeCoder
                 code -= range & (t - 1);
                 result = (result << 1) | (1 - t);
 
-                if (range < KTopValue)
-                {
-                    code = (code << 8) | (byte) Stream.ReadByte();
-                    range <<= 8;
-                }
+                if (range >= KTopValue)
+                    continue;
+                code = (code << 8) | (byte) Stream.ReadByte();
+                range <<= 8;
             }
 
             Range = range;

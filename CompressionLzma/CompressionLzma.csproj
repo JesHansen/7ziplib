@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CompressionHelper.cs" />
     <Compile Include="CRC.cs" />
     <Compile Include="ICoder.cs" />
     <Compile Include="IMatchFinder.cs" />

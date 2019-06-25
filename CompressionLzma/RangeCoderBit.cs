@@ -25,8 +25,6 @@ namespace SevenZip.Compression.RangeCoder
 
         public void Encode(Encoder encoder, uint symbol)
         {
-            // encoder.EncodeBit(Prob, kNumBitModelTotalBits, symbol);
-            // UpdateModel(symbol);
             var newBound = (encoder.Range >> KNumBitModelTotalBits) * prob;
             if (symbol == 0)
             {
@@ -40,11 +38,10 @@ namespace SevenZip.Compression.RangeCoder
                 prob -= prob >> KNumMoveBits;
             }
 
-            if (encoder.Range < Encoder.KTopValue)
-            {
-                encoder.Range <<= 8;
-                encoder.ShiftLow();
-            }
+            if (encoder.Range >= Encoder.KTopValue)
+                return;
+            encoder.Range <<= 8;
+            encoder.ShiftLow();
         }
 
         private static readonly uint[] _probPrices = new uint[KBitModelTotal >> KNumMoveReducingBits];
@@ -106,11 +103,10 @@ namespace SevenZip.Compression.RangeCoder
             {
                 rangeDecoder.Range = newBound;
                 prob += (KBitModelTotal - prob) >> KNumMoveBits;
-                if (rangeDecoder.Range < Decoder.KTopValue)
-                {
-                    rangeDecoder.Code = (rangeDecoder.Code << 8) | (byte) rangeDecoder.Stream.ReadByte();
-                    rangeDecoder.Range <<= 8;
-                }
+                if (rangeDecoder.Range >= Decoder.KTopValue)
+                    return 0;
+                rangeDecoder.Code = (rangeDecoder.Code << 8) | (byte) rangeDecoder.Stream.ReadByte();
+                rangeDecoder.Range <<= 8;
 
                 return 0;
             }
@@ -118,11 +114,10 @@ namespace SevenZip.Compression.RangeCoder
             rangeDecoder.Range -= newBound;
             rangeDecoder.Code -= newBound;
             prob -= prob >> KNumMoveBits;
-            if (rangeDecoder.Range < Decoder.KTopValue)
-            {
-                rangeDecoder.Code = (rangeDecoder.Code << 8) | (byte) rangeDecoder.Stream.ReadByte();
-                rangeDecoder.Range <<= 8;
-            }
+            if (rangeDecoder.Range >= Decoder.KTopValue)
+                return 1;
+            rangeDecoder.Code = (rangeDecoder.Code << 8) | (byte) rangeDecoder.Stream.ReadByte();
+            rangeDecoder.Range <<= 8;
 
             return 1;
         }
