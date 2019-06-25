@@ -44,15 +44,12 @@
     <Compile Include="CRC.cs" />
     <Compile Include="ICoder.cs" />
     <Compile Include="IMatchFinder.cs" />
-    <Compile Include="InBuffer.cs" />
     <Compile Include="LzBinTree.cs" />
     <Compile Include="LzInWindow.cs" />
     <Compile Include="LzmaBase.cs" />
-    <Compile Include="LzmaBench.cs" />
     <Compile Include="LzmaDecoder.cs" />
     <Compile Include="LzmaEncoder.cs" />
     <Compile Include="LzOutWindow.cs" />
-    <Compile Include="OutBuffer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RangeCoder.cs" />
     <Compile Include="RangeCoderBit.cs" />

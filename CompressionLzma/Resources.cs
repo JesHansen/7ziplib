@@ -21,10 +21,10 @@ namespace LzmaAlone.Properties
 	// class via a tool like ResGen or Visual Studio.NET.
 	// To add or remove a member, edit your .ResX file then rerun ResGen
 	// with the /str option, or rebuild your VS project.
-	class Resources
+    internal class Resources
 	{
 
-		private static System.Resources.ResourceManager _resMgr;
+		private static ResourceManager _resMgr;
 
 		private static System.Globalization.CultureInfo _resCulture;
 
@@ -37,13 +37,13 @@ namespace LzmaAlone.Properties
 		///    Returns the cached ResourceManager instance used by this class.
 		/// </summary>
 		[System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-		public static System.Resources.ResourceManager ResourceManager
+		public static ResourceManager ResourceManager
 		{
 			get
 			{
-				if ((_resMgr == null))
+				if (_resMgr == null)
 				{
-					System.Resources.ResourceManager temp = new System.Resources.ResourceManager("Resources", typeof(Resources).Assembly);
+					var temp = new ResourceManager("Resources", typeof(Resources).Assembly);
 					_resMgr = temp;
 				}
 				return _resMgr;

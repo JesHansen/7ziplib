@@ -6,39 +6,39 @@ namespace SevenZip.Compression.LZ
 {
 	public class BinTree : InWindow, IMatchFinder
 	{
-		UInt32 _cyclicBufferPos;
-		UInt32 _cyclicBufferSize = 0;
-		UInt32 _matchMaxLen;
+        private uint cyclicBufferPos;
+        private uint cyclicBufferSize = 0;
+        private uint matchMaxLen;
 
-		UInt32[] _son;
-		UInt32[] _hash;
+        private uint[] son;
+        private uint[] hash;
 
-		UInt32 _cutValue = 0xFF;
-		UInt32 _hashMask;
-		UInt32 _hashSizeSum = 0;
+        private uint cutValue = 0xFF;
+        private uint hashMask;
+        private uint hashSizeSum = 0;
 
-		bool HASH_ARRAY = true;
+        private bool hashArray = true;
 
-		const UInt32 kHash2Size = 1 << 10;
-		const UInt32 kHash3Size = 1 << 16;
-		const UInt32 kBT2HashSize = 1 << 16;
-		const UInt32 kStartMaxLen = 1;
-		const UInt32 kHash3Offset = kHash2Size;
-		const UInt32 kEmptyHashValue = 0;
-		const UInt32 kMaxValForNormalize = ((UInt32)1 << 31) - 1;
-	
-		UInt32 kNumHashDirectBytes = 0;
-		UInt32 kMinMatchCheck = 4;
-		UInt32 kFixHashSize = kHash2Size + kHash3Size;
+        private const uint KHash2Size = 1 << 10;
+        private const uint KHash3Size = 1 << 16;
+        private const uint KBt2HashSize = 1 << 16;
+        private const uint KStartMaxLen = 1;
+        private const uint KHash3Offset = KHash2Size;
+        private const uint KEmptyHashValue = 0;
+        private const uint KMaxValForNormalize = ((uint)1 << 31) - 1;
+
+        private uint kNumHashDirectBytes = 0;
+        private uint kMinMatchCheck = 4;
+        private uint kFixHashSize = KHash2Size + KHash3Size;
 		
 		public void SetType(int numHashBytes)
 		{
-			HASH_ARRAY = (numHashBytes > 2);
-			if (HASH_ARRAY)
+			hashArray = numHashBytes > 2;
+			if (hashArray)
 			{
 				kNumHashDirectBytes = 0;
 				kMinMatchCheck = 4;
-				kFixHashSize = kHash2Size + kHash3Size;
+				kFixHashSize = KHash2Size + KHash3Size;
 			}
 			else
 			{
@@ -54,75 +54,75 @@ namespace SevenZip.Compression.LZ
 		public new void Init()
 		{
 			base.Init();
-			for (UInt32 i = 0; i < _hashSizeSum; i++)
-				_hash[i] = kEmptyHashValue;
-			_cyclicBufferPos = 0;
+			for (uint i = 0; i < hashSizeSum; i++)
+				hash[i] = KEmptyHashValue;
+			cyclicBufferPos = 0;
 			ReduceOffsets(-1);
 		}
 
 		public new void MovePos()
 		{
-			if (++_cyclicBufferPos >= _cyclicBufferSize)
-				_cyclicBufferPos = 0;
+			if (++cyclicBufferPos >= cyclicBufferSize)
+				cyclicBufferPos = 0;
 			base.MovePos();
-			if (_pos == kMaxValForNormalize)
+			if (Pos == KMaxValForNormalize)
 				Normalize();
 		}
 
-		public new Byte GetIndexByte(Int32 index) { return base.GetIndexByte(index); }
+		public new byte GetIndexByte(int index) { return base.GetIndexByte(index); }
 
-		public new UInt32 GetMatchLen(Int32 index, UInt32 distance, UInt32 limit)
+		public new uint GetMatchLen(int index, uint distance, uint limit)
 		{ return base.GetMatchLen(index, distance, limit); }
 
-		public new UInt32 GetNumAvailableBytes() { return base.GetNumAvailableBytes(); }
+		public new uint GetNumAvailableBytes() { return base.GetNumAvailableBytes(); }
 
-		public void Create(UInt32 historySize, UInt32 keepAddBufferBefore,
-				UInt32 matchMaxLen, UInt32 keepAddBufferAfter)
+		public void Create(uint historySize, uint keepAddBufferBefore,
+				uint matchMaxLen, uint keepAddBufferAfter)
 		{
-			if (historySize > kMaxValForNormalize - 256)
+			if (historySize > KMaxValForNormalize - 256)
 				throw new Exception();
-			_cutValue = 16 + (matchMaxLen >> 1);
+			cutValue = 16 + (matchMaxLen >> 1);
 				
-			UInt32 windowReservSize = (historySize + keepAddBufferBefore +
+			var windowReservSize = (historySize + keepAddBufferBefore +
 					matchMaxLen + keepAddBufferAfter) / 2 + 256;
 
 			base.Create(historySize + keepAddBufferBefore, matchMaxLen + keepAddBufferAfter, windowReservSize);
 
-			_matchMaxLen = matchMaxLen;
+			this.matchMaxLen = matchMaxLen;
 
-			UInt32 cyclicBufferSize = historySize + 1;
-			if (_cyclicBufferSize != cyclicBufferSize)
-				_son = new UInt32[(_cyclicBufferSize = cyclicBufferSize) * 2];
+			var cyclicBufferSize = historySize + 1;
+			if (this.cyclicBufferSize != cyclicBufferSize)
+				son = new uint[(this.cyclicBufferSize = cyclicBufferSize) * 2];
 
-			UInt32 hs = kBT2HashSize;
+			var hs = KBt2HashSize;
 
-			if (HASH_ARRAY)
+			if (hashArray)
 			{
 				hs = historySize - 1;
-				hs |= (hs >> 1);
-				hs |= (hs >> 2);
-				hs |= (hs >> 4);
-				hs |= (hs >> 8);
+				hs |= hs >> 1;
+				hs |= hs >> 2;
+				hs |= hs >> 4;
+				hs |= hs >> 8;
 				hs >>= 1;
 				hs |= 0xFFFF;
-				if (hs > (1 << 24))
+				if (hs > 1 << 24)
 					hs >>= 1;
-				_hashMask = hs;
+				hashMask = hs;
 				hs++;
 				hs += kFixHashSize;
 			}
-			if (hs != _hashSizeSum)
-				_hash = new UInt32[_hashSizeSum = hs];
+			if (hs != hashSizeSum)
+				hash = new uint[hashSizeSum = hs];
 		}
 
-		public UInt32 GetMatches(UInt32[] distances)
+		public uint GetMatches(uint[] distances)
 		{
-			UInt32 lenLimit;
-			if (_pos + _matchMaxLen <= _streamPos)
-				lenLimit = _matchMaxLen;
+			uint lenLimit;
+			if (Pos + matchMaxLen <= StreamPos)
+				lenLimit = matchMaxLen;
 			else
 			{
-				lenLimit = _streamPos - _pos;
+				lenLimit = StreamPos - Pos;
 				if (lenLimit < kMinMatchCheck)
 				{
 					MovePos();
@@ -130,93 +130,93 @@ namespace SevenZip.Compression.LZ
 				}
 			}
 
-			UInt32 offset = 0;
-			UInt32 matchMinPos = (_pos > _cyclicBufferSize) ? (_pos - _cyclicBufferSize) : 0;
-			UInt32 cur = _bufferOffset + _pos;
-			UInt32 maxLen = kStartMaxLen; // to avoid items for len < hashSize;
-			UInt32 hashValue, hash2Value = 0, hash3Value = 0;
+			uint offset = 0;
+			var matchMinPos = Pos > cyclicBufferSize ? Pos - cyclicBufferSize : 0;
+			var cur = BufferOffset + Pos;
+			var maxLen = KStartMaxLen; // to avoid items for len < hashSize;
+			uint hashValue, hash2Value = 0, hash3Value = 0;
 
-			if (HASH_ARRAY)
+			if (hashArray)
 			{
-				UInt32 temp = CRC.Table[_bufferBase[cur]] ^ _bufferBase[cur + 1];
-				hash2Value = temp & (kHash2Size - 1);
-				temp ^= ((UInt32)(_bufferBase[cur + 2]) << 8);
-				hash3Value = temp & (kHash3Size - 1);
-				hashValue = (temp ^ (CRC.Table[_bufferBase[cur + 3]] << 5)) & _hashMask;
+				var temp = Crc.Table[BufferBase[cur]] ^ BufferBase[cur + 1];
+				hash2Value = temp & (KHash2Size - 1);
+				temp ^= (uint)BufferBase[cur + 2] << 8;
+				hash3Value = temp & (KHash3Size - 1);
+				hashValue = (temp ^ (Crc.Table[BufferBase[cur + 3]] << 5)) & hashMask;
 			}
 			else
-				hashValue = _bufferBase[cur] ^ ((UInt32)(_bufferBase[cur + 1]) << 8);
+				hashValue = BufferBase[cur] ^ ((uint)BufferBase[cur + 1] << 8);
 
-			UInt32 curMatch = _hash[kFixHashSize + hashValue];
-			if (HASH_ARRAY)
+			var curMatch = hash[kFixHashSize + hashValue];
+			if (hashArray)
 			{
-				UInt32 curMatch2 = _hash[hash2Value];
-				UInt32 curMatch3 = _hash[kHash3Offset + hash3Value];
-				_hash[hash2Value] = _pos;
-				_hash[kHash3Offset + hash3Value] = _pos;
+				var curMatch2 = hash[hash2Value];
+				var curMatch3 = hash[KHash3Offset + hash3Value];
+				hash[hash2Value] = Pos;
+				hash[KHash3Offset + hash3Value] = Pos;
 				if (curMatch2 > matchMinPos)
-					if (_bufferBase[_bufferOffset + curMatch2] == _bufferBase[cur])
+					if (BufferBase[BufferOffset + curMatch2] == BufferBase[cur])
 					{
 						distances[offset++] = maxLen = 2;
-						distances[offset++] = _pos - curMatch2 - 1;
+						distances[offset++] = Pos - curMatch2 - 1;
 					}
 				if (curMatch3 > matchMinPos)
-					if (_bufferBase[_bufferOffset + curMatch3] == _bufferBase[cur])
+					if (BufferBase[BufferOffset + curMatch3] == BufferBase[cur])
 					{
 						if (curMatch3 == curMatch2)
 							offset -= 2;
 						distances[offset++] = maxLen = 3;
-						distances[offset++] = _pos - curMatch3 - 1;
+						distances[offset++] = Pos - curMatch3 - 1;
 						curMatch2 = curMatch3;
 					}
 				if (offset != 0 && curMatch2 == curMatch)
 				{
 					offset -= 2;
-					maxLen = kStartMaxLen;
+					maxLen = KStartMaxLen;
 				}
 			}
 
-			_hash[kFixHashSize + hashValue] = _pos;
+			hash[kFixHashSize + hashValue] = Pos;
 
-			UInt32 ptr0 = (_cyclicBufferPos << 1) + 1;
-			UInt32 ptr1 = (_cyclicBufferPos << 1);
+			var ptr0 = (cyclicBufferPos << 1) + 1;
+			var ptr1 = cyclicBufferPos << 1;
 
-			UInt32 len0, len1;
+			uint len0, len1;
 			len0 = len1 = kNumHashDirectBytes;
 			
 			if (kNumHashDirectBytes != 0)
 			{
 				if (curMatch > matchMinPos)
 				{
-					if (_bufferBase[_bufferOffset + curMatch + kNumHashDirectBytes] !=
-							_bufferBase[cur + kNumHashDirectBytes])
+					if (BufferBase[BufferOffset + curMatch + kNumHashDirectBytes] !=
+							BufferBase[cur + kNumHashDirectBytes])
 					{
 						distances[offset++] = maxLen = kNumHashDirectBytes;
-						distances[offset++] = _pos - curMatch - 1;
+						distances[offset++] = Pos - curMatch - 1;
 					}
 				}
 			}
 			
-			UInt32 count = _cutValue;
+			var count = cutValue;
 			
 			while(true)
 			{
 				if(curMatch <= matchMinPos || count-- == 0)
 				{
-					_son[ptr0] = _son[ptr1] = kEmptyHashValue;
+					son[ptr0] = son[ptr1] = KEmptyHashValue;
 					break;
 				}
-				UInt32 delta = _pos - curMatch;
-				UInt32 cyclicPos = ((delta <= _cyclicBufferPos) ?
-							(_cyclicBufferPos - delta) :
-							(_cyclicBufferPos - delta + _cyclicBufferSize)) << 1;
+				var delta = Pos - curMatch;
+				var cyclicPos = (delta <= cyclicBufferPos ?
+							cyclicBufferPos - delta :
+							cyclicBufferPos - delta + cyclicBufferSize) << 1;
 
-				UInt32 pby1 = _bufferOffset + curMatch;
-				UInt32 len = Math.Min(len0, len1);
-				if (_bufferBase[pby1 + len] == _bufferBase[cur + len])
+				var pby1 = BufferOffset + curMatch;
+				var len = Math.Min(len0, len1);
+				if (BufferBase[pby1 + len] == BufferBase[cur + len])
 				{
 					while(++len != lenLimit)
-						if (_bufferBase[pby1 + len] != _bufferBase[cur + len])
+						if (BufferBase[pby1 + len] != BufferBase[cur + len])
 							break;
 					if (maxLen < len)
 					{
@@ -224,24 +224,24 @@ namespace SevenZip.Compression.LZ
 						distances[offset++] = delta - 1;
 						if (len == lenLimit)
 						{
-							_son[ptr1] = _son[cyclicPos];
-							_son[ptr0] = _son[cyclicPos + 1];
+							son[ptr1] = son[cyclicPos];
+							son[ptr0] = son[cyclicPos + 1];
 							break;
 						}
 					}
 				}
-				if (_bufferBase[pby1 + len] < _bufferBase[cur + len])
+				if (BufferBase[pby1 + len] < BufferBase[cur + len])
 				{
-					_son[ptr1] = curMatch;
+					son[ptr1] = curMatch;
 					ptr1 = cyclicPos + 1;
-					curMatch = _son[ptr1];
+					curMatch = son[ptr1];
 					len1 = len;
 				}
 				else
 				{
-					_son[ptr0] = curMatch;
+					son[ptr0] = curMatch;
 					ptr0 = cyclicPos;
-					curMatch = _son[ptr0];
+					curMatch = son[ptr0];
 					len0 = len;
 				}
 			}
@@ -249,16 +249,16 @@ namespace SevenZip.Compression.LZ
 			return offset;
 		}
 
-		public void Skip(UInt32 num)
+		public void Skip(uint num)
 		{
 			do
 			{
-				UInt32 lenLimit;
-				if (_pos + _matchMaxLen <= _streamPos)
-					lenLimit = _matchMaxLen;
+				uint lenLimit;
+				if (Pos + matchMaxLen <= StreamPos)
+					lenLimit = matchMaxLen;
 				else
 				{
-					lenLimit = _streamPos - _pos;
+					lenLimit = StreamPos - Pos;
 					if (lenLimit < kMinMatchCheck)
 					{
 						MovePos();
@@ -266,73 +266,73 @@ namespace SevenZip.Compression.LZ
 					}
 				}
 
-				UInt32 matchMinPos = (_pos > _cyclicBufferSize) ? (_pos - _cyclicBufferSize) : 0;
-				UInt32 cur = _bufferOffset + _pos;
+				var matchMinPos = Pos > cyclicBufferSize ? Pos - cyclicBufferSize : 0;
+				var cur = BufferOffset + Pos;
 
-				UInt32 hashValue;
+				uint hashValue;
 
-				if (HASH_ARRAY)
+				if (hashArray)
 				{
-					UInt32 temp = CRC.Table[_bufferBase[cur]] ^ _bufferBase[cur + 1];
-					UInt32 hash2Value = temp & (kHash2Size - 1);
-					_hash[hash2Value] = _pos;
-					temp ^= ((UInt32)(_bufferBase[cur + 2]) << 8);
-					UInt32 hash3Value = temp & (kHash3Size - 1);
-					_hash[kHash3Offset + hash3Value] = _pos;
-					hashValue = (temp ^ (CRC.Table[_bufferBase[cur + 3]] << 5)) & _hashMask;
+					var temp = Crc.Table[BufferBase[cur]] ^ BufferBase[cur + 1];
+					var hash2Value = temp & (KHash2Size - 1);
+					hash[hash2Value] = Pos;
+					temp ^= (uint)BufferBase[cur + 2] << 8;
+					var hash3Value = temp & (KHash3Size - 1);
+					hash[KHash3Offset + hash3Value] = Pos;
+					hashValue = (temp ^ (Crc.Table[BufferBase[cur + 3]] << 5)) & hashMask;
 				}
 				else
-					hashValue = _bufferBase[cur] ^ ((UInt32)(_bufferBase[cur + 1]) << 8);
+					hashValue = BufferBase[cur] ^ ((uint)BufferBase[cur + 1] << 8);
 
-				UInt32 curMatch = _hash[kFixHashSize + hashValue];
-				_hash[kFixHashSize + hashValue] = _pos;
+				var curMatch = hash[kFixHashSize + hashValue];
+				hash[kFixHashSize + hashValue] = Pos;
 
-				UInt32 ptr0 = (_cyclicBufferPos << 1) + 1;
-				UInt32 ptr1 = (_cyclicBufferPos << 1);
+				var ptr0 = (cyclicBufferPos << 1) + 1;
+				var ptr1 = cyclicBufferPos << 1;
 
-				UInt32 len0, len1;
+				uint len0, len1;
 				len0 = len1 = kNumHashDirectBytes;
 
-				UInt32 count = _cutValue;
+				var count = cutValue;
 				while (true)
 				{
 					if (curMatch <= matchMinPos || count-- == 0)
 					{
-						_son[ptr0] = _son[ptr1] = kEmptyHashValue;
+						son[ptr0] = son[ptr1] = KEmptyHashValue;
 						break;
 					}
 
-					UInt32 delta = _pos - curMatch;
-					UInt32 cyclicPos = ((delta <= _cyclicBufferPos) ?
-								(_cyclicBufferPos - delta) :
-								(_cyclicBufferPos - delta + _cyclicBufferSize)) << 1;
+					var delta = Pos - curMatch;
+					var cyclicPos = (delta <= cyclicBufferPos ?
+								cyclicBufferPos - delta :
+								cyclicBufferPos - delta + cyclicBufferSize) << 1;
 
-					UInt32 pby1 = _bufferOffset + curMatch;
-					UInt32 len = Math.Min(len0, len1);
-					if (_bufferBase[pby1 + len] == _bufferBase[cur + len])
+					var pby1 = BufferOffset + curMatch;
+					var len = Math.Min(len0, len1);
+					if (BufferBase[pby1 + len] == BufferBase[cur + len])
 					{
 						while (++len != lenLimit)
-							if (_bufferBase[pby1 + len] != _bufferBase[cur + len])
+							if (BufferBase[pby1 + len] != BufferBase[cur + len])
 								break;
 						if (len == lenLimit)
 						{
-							_son[ptr1] = _son[cyclicPos];
-							_son[ptr0] = _son[cyclicPos + 1];
+							son[ptr1] = son[cyclicPos];
+							son[ptr0] = son[cyclicPos + 1];
 							break;
 						}
 					}
-					if (_bufferBase[pby1 + len] < _bufferBase[cur + len])
+					if (BufferBase[pby1 + len] < BufferBase[cur + len])
 					{
-						_son[ptr1] = curMatch;
+						son[ptr1] = curMatch;
 						ptr1 = cyclicPos + 1;
-						curMatch = _son[ptr1];
+						curMatch = son[ptr1];
 						len1 = len;
 					}
 					else
 					{
-						_son[ptr0] = curMatch;
+						son[ptr0] = curMatch;
 						ptr0 = cyclicPos;
-						curMatch = _son[ptr0];
+						curMatch = son[ptr0];
 						len0 = len;
 					}
 				}
@@ -341,27 +341,27 @@ namespace SevenZip.Compression.LZ
 			while (--num != 0);
 		}
 
-		void NormalizeLinks(UInt32[] items, UInt32 numItems, UInt32 subValue)
+        private void NormalizeLinks(uint[] items, uint numItems, uint subValue)
 		{
-			for (UInt32 i = 0; i < numItems; i++)
+			for (uint i = 0; i < numItems; i++)
 			{
-				UInt32 value = items[i];
+				var value = items[i];
 				if (value <= subValue)
-					value = kEmptyHashValue;
+					value = KEmptyHashValue;
 				else
 					value -= subValue;
 				items[i] = value;
 			}
 		}
 
-		void Normalize()
+        private void Normalize()
 		{
-			UInt32 subValue = _pos - _cyclicBufferSize;
-			NormalizeLinks(_son, _cyclicBufferSize * 2, subValue);
-			NormalizeLinks(_hash, _hashSizeSum, subValue);
-			ReduceOffsets((Int32)subValue);
+			var subValue = Pos - cyclicBufferSize;
+			NormalizeLinks(son, cyclicBufferSize * 2, subValue);
+			NormalizeLinks(hash, hashSizeSum, subValue);
+			ReduceOffsets((int)subValue);
 		}
 
-		public void SetCutValue(UInt32 cutValue) { _cutValue = cutValue; }
+		public void SetCutValue(uint cutValue) { this.cutValue = cutValue; }
 	}
 }
